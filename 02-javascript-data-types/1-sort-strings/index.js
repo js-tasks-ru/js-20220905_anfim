@@ -5,5 +5,18 @@
  * @returns {string[]}
  */
 export function sortStrings(arr, param = 'asc') {
+  let sortedArr = arr.slice().sort((a, b) => {
+    let aLow = a.toLowerCase();
+    let bLow = b.toLowerCase();
+    if (aLow === bLow) {
+      return (a[0] > b[0]) ? 1 : -1;
+    }
+    return aLow.localeCompare(bLow);
+  });
 
+  if (param === 'desc') {
+    return sortedArr.reverse();
+  } else {
+    return sortedArr;
+  }
 }
