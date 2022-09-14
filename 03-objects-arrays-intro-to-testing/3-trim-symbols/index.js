@@ -5,5 +5,10 @@
  * @returns {string} - the new string without extra symbols according passed size
  */
 export function trimSymbols(string, size) {
-
+  const strArr = string.split('')
+  let splitedArr = strArr.reduce((prev,cur,i,arr) => {
+    return (arr[i-1] === cur || i === 0) ? prev+cur : prev+'|'+cur;
+  }, '').split('|')
+  let result = splitedArr.map(item => (item.length > size) ? item.substr(0, size) : item)
+  return result.join('')
 }
