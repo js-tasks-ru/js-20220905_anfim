@@ -12,5 +12,6 @@ export function invertObj(obj) {
       result[v] = keysArr[i]
     })
     return result
-  } else return
+  }
 }
+//object Entries
