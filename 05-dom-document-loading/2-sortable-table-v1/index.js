@@ -1,5 +1,6 @@
 export default class SortableTable {
   element
+  subElements = {}
 
   constructor(headerConfig = [], data = []) {
     this.headerConfig = headerConfig
@@ -7,8 +8,8 @@ export default class SortableTable {
 
     this.headerRowsTemplate = this.headerRows()
     this.bodyRowsTemplate = this.bodyRows()
-    this.subElements = new DOMParser().parseFromString(this.bodyRows().join(''), "text/html"); // создал чтобы тесты проходили
     this.render()
+    this.subElements = this.getSubElements()
   }
 
   render () {
@@ -61,6 +62,17 @@ export default class SortableTable {
     `
   }
 
+  getSubElements() {
+    const subElements = {}
+    const elementsArr = this.element.querySelectorAll('[data-element]');
+    
+    elementsArr.forEach(elem => {
+      subElements[elem.dataset.element] = elem
+    })
+
+    return subElements;
+  }
+
   sort (fieldValue, orderValue) {
     const index = this.headerConfig.findIndex(elem => elem.id === fieldValue)
     const targetCol = this.headerConfig[index]
@@ -83,11 +95,11 @@ export default class SortableTable {
       throw new Error('Wrong parameter direction')
     });
     this.bodyRowsTemplate = this.bodyRows(sortedArr)
-    document.querySelector('[data-element="body"]').innerHTML = this.bodyRowsTemplate.join('')
+    this.subElements.body.innerHTML = this.bodyRowsTemplate.join('')
     
-    document.querySelector('[data-element="header"]').children[index].dataset.order = orderValue //атрибуты добавляю, но не разобрался как их удалять
+    this.subElements.header.children[index].dataset.order = orderValue //атрибуты добавляю, но не разобрался как их удалять
 
-    this.subElements = new DOMParser().parseFromString(this.bodyRows(sortedArr).join(''), "text/html"); // меняю чтобы тесты проходили
+    this.subElements = this.bodyRows(sortedArr).join('')
   }
 
   remove () {
