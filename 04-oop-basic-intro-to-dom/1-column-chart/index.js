@@ -40,7 +40,7 @@ export default class ColumnChart {
   }
 
   dataTemplate (data = this.data) {
-    const maxData = Math.max.apply(null, data)
+    const maxData = Math.max(...data)
     const coef = 100 / maxData
     const dataTemplateArr = data.map(value => {
       value = value * coef
@@ -52,9 +52,9 @@ export default class ColumnChart {
   }
 
   update (data = this.data, value = this.value) {
-    const currentChart = this.element.children[1]
-    const header = currentChart.children[0]
-    const chart = currentChart.children[1]
+    // const currentChart = this.element.children[1]
+    const header = this.element.querySelector('[data-element="header"]')
+    const chart = this.element.querySelector('[data-element="body"]')
 
     if (data.length === 0) {
       this.element.classList.add('column-chart_loading')
@@ -65,10 +65,11 @@ export default class ColumnChart {
   }
 
   remove () {
-    this.element.remove()
+    this.element?.remove()
   }
 
   destroy () {
     this.remove()
+    this.element = null
   }
 }
