@@ -3,14 +3,20 @@ class Tooltip {
   element
 
   constructor() {
-    Tooltip.prevTooltip?.remove()
-    this.render()
+    if (Tooltip.prevTooltip) {
+      return Tooltip.prevTooltip
+    }
+    // this.render()
     Tooltip.prevTooltip = this;
   }
 
   initialize () {
-    document.addEventListener('pointerover', (event) => this.tooltipOver(event), {bubbles: true})
-    document.addEventListener('pointerout', (event) => this.tooltipOut(event), {bubbles: true})
+    this.addListeners()
+  }
+  
+  addListeners() {
+    document.addEventListener('pointerover', this.tooltipOver)
+    document.addEventListener('pointerout', this.tooltipOut)
   }
 
   render () {
@@ -25,33 +31,36 @@ class Tooltip {
     `
   }
 
-  tooltipOver (event) {
+  tooltipOver = event => {
     if (!event.target.dataset.tooltip) return
-    
+    this.render()
     document.body.append(this.element);
     this.element.innerHTML = event.target.dataset.tooltip
-    event.target.addEventListener('pointermove', event => this.tooltipMove(event))
+    event.target.addEventListener('pointermove', this.tooltipMove)
   }
 
-  tooltipOut (event) {
-    this.element.remove()
-    event.target.removeEventListener('pointermove', event => this.tooltipMove(event))
+  tooltipMove = event => {
+    const paddingX = 10
+    const paddingY = 5
+    this.element.style.left = event.pageX + paddingX + 'px';
+    this.element.style.top = event.pageY + paddingY + 'px'
   }
 
-  tooltipMove (event) {
-    this.element.style.left = event.pageX + 10 + 'px';
-    this.element.style.top = event.pageY + 5 + 'px'
+  tooltipOut = event => {
+    this.element?.remove()
+    event.target.removeEventListener('pointermove', this.tooltipMove)
   }
+
 
   remove() {
-    this.element.remove()
+    this.element?.remove()
   }
 
   destroy() {
     this.remove()
-    document.removeEventListener("pointerover", (event) => this.tooltipOver(event))
-    document.removeEventListener("pointerout", (event) => this.tooltipOut(event))
-    document.removeEventListener("pointermove", (event) => this.tooltipMove(event))
+    document.removeEventListener("pointerover", this.tooltipOver)
+    document.removeEventListener("pointerout", this.tooltipOut)
+    document.removeEventListener("pointermove", this.tooltipMove)
   }
 }
 
