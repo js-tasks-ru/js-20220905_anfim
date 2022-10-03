@@ -13,11 +13,12 @@ export default class SortableTable {
     this.sortDirect = false
     this.isSortLocally = true
     this.headerRowsTemplate = this.headerRows()
-    this.bodyRowsTemplate = this.bodyRows(this.sort(this.sorted.id, this.sorted.order))
+    this.sortedData = this.sort(this.sorted.id, this.sorted.order)
+    this.bodyRowsTemplate = this.bodyRows(this.sortedData)
     this.render()
     
     this.subElements = this.getSubElements()
-    this.subElements.header.addEventListener('pointerdown', event => this.onSortedHandler(event), {bubbles: true})
+    this.subElements.header.addEventListener('pointerdown', this.onSortedHandler)
   }
   
   render () {
@@ -26,13 +27,13 @@ export default class SortableTable {
       element.innerHTML = this.template;
       this.element = element.firstElementChild;
       
-      const firstSortElem = this.element.children[0].children[0].querySelector(`[data-id="${this.sorted.id}"]`)
+      const firstSortElem = this.element.querySelector(`[data-id="${this.sorted.id}"]`)
 
       const arrow = document.createElement("div");
       arrow.innerHTML = this.arrowTemp;
       this.arrow = arrow.firstElementChild;
       firstSortElem.dataset.order = 'asc'
-      firstSortElem.appendChild(this.arrow)
+      firstSortElem.append(this.arrow)
     }
   }
 
@@ -118,13 +119,13 @@ export default class SortableTable {
     }
     
     const sortedArr = [...this.data].sort((a, b) => {
-      a = a[targetCol.id]
-      b = b[targetCol.id]
+      const curr = a[targetCol.id]
+      const next = b[targetCol.id]
       if (order === 'asc') {
-        return compare (a, b)
+        return compare (curr, next)
       }
       if (order === 'desc') {
-        return compare(b, a)
+        return compare(next, curr)
       }
       throw new Error('Wrong parameter direction')
     });
@@ -132,19 +133,23 @@ export default class SortableTable {
     return sortedArr
   }
 
-  onSortedHandler (event) {
-    let prevTarget = this.subElements.header.querySelector('[data-order]')
-    let targetElem = event.target.closest('[data-sortable="true"]');
+  onSortedHandler = event => {
+    const prevTarget = this.subElements.header.querySelector('[data-order]')
+    const targetElem = event.target.closest('[data-sortable="true"]');
 
     if (targetElem !== prevTarget) {
       this.sortDirect = true
     }
-    let order = this.sortDirect ? 'asc' : 'desc';
 
-    [].forEach.call(this.subElements.header.children, function( el ) {
-      el.removeAttribute('data-order');
-    });
-    this.subElements.body.innerHTML = this.bodyRows(this.sort(targetElem.dataset.id, order)).join('')
+    const order = this.sortDirect ? 'asc' : 'desc';
+
+    const columns = this.subElements.header.querySelectorAll('[data-order]');
+    for (const elem of columns) {
+      elem.removeAttribute('data-order');
+    }
+
+    const sortedData = this.sort(targetElem.dataset.id, order)
+    this.subElements.body.innerHTML = this.bodyRows(sortedData).join('')
     targetElem.dataset.order = order
     targetElem.appendChild(this.arrow)
 
@@ -157,7 +162,6 @@ export default class SortableTable {
 
   destroy () {
     this.remove()
-    this.subElements.header.removeEventListener('pointerdown', event => this.onSortedHandler(event), {bubbles: true})
     this.element = null
   }
 }
