@@ -18,8 +18,7 @@ export default class SortableTable {
     this.render()
     this.sort('title', 'asc')
     this.subElements = this.getSubElements()
-    this.subElements.header.addEventListener('pointerdown', this.onSortedHandler)
-    document.addEventListener('scroll', this.onScrollHandler)
+    this.initListeners()
   }
 
   render () {
@@ -62,11 +61,8 @@ export default class SortableTable {
         return `
           <a href="/products/${elem.id}" class="sortable-table__row">
             ${Object.values(this.headerConfig).map(field => {
-              if (field.template) {
-                return field.template(elem[field.id])
-              } else {
-                return `<div class="sortable-table__cell">${elem[field.id]}</div>`
-              }
+              if (field.template) return field.template(elem[field.id])
+              return `<div class="sortable-table__cell">${elem[field.id]}</div>`
               }).join('')
             }
           </a>
@@ -95,6 +91,11 @@ export default class SortableTable {
     `
   }
 
+  initListeners() {
+    this.subElements.header.addEventListener('pointerdown', this.onSortedHandler)
+    document.addEventListener('scroll', this.onScrollHandler)
+  }
+
   async fetchData (field, order, start = 0, end = 30) {
     this.url.searchParams.set('_sort', field)
     this.url.searchParams.set('_order', order)
@@ -110,7 +111,7 @@ export default class SortableTable {
     this.url.searchParams.set('_start', start)
     this.url.searchParams.set('_end', end)
     const data = await fetchJson(this.url)
-    let addTemp = document.createElement("div");
+    const addTemp = document.createElement("div");
     addTemp.innerHTML = this.bodyRows(data).join('');
     addTemp.replaceWith(...addTemp.children)
     
@@ -131,7 +132,7 @@ export default class SortableTable {
     const index = this.headerConfig.findIndex(elem => elem.id === field)
     const targetCol = this.headerConfig[index]
 
-    let compare = (a, b) => a - b;
+    const compare = (a, b) => a - b;
     
     if (targetCol.sortType === 'string') {
       compare = (a, b) => a.localeCompare(b, ['ru', 'en'], {caseFirst: 'upper'});
@@ -183,10 +184,13 @@ export default class SortableTable {
   }
 
   onScrollHandler = event => {
+    const countNewItems = 30
+    const offset = countNewItems * 80
+
     if (scrollY > this.offset) {
-      this.offset += 2400
-      this.start += 30
-      this.end += 30
+      this.offset += offset
+      this.start += countNewItems
+      this.end += countNewItems
       this.addData(this.start, this.end)
     }
   }
