@@ -75,13 +75,16 @@ export default class ProductForm {
     fileInput.type = 'file'
     fileInput.click()
 
-    fileInput.addEventListener('change', () => {
-      fetch('https://api.imgur.com/3/image', {
+    fileInput.addEventListener('change', async () => {
+      this.subElements.uploadImage.disabled = true
+      this.subElements.uploadImage.classList.add('is-loading')
+      await fetch('https://api.imgur.com/3/image', {
         method: "POST", 
         headers: {
           Authorization: `Client-ID ${IMGUR_CLIENT_ID}`
         },
-        body: fileInput.files[0] 
+        body: fileInput.files[0],
+        referrer: ''
       })
       .then(response => {
         const data = response.json()
@@ -97,6 +100,9 @@ export default class ProductForm {
           this.imgArr.push(newImage)
           this.appendNewImage(newImage)
         })
+        this.subElements.uploadImage.disabled = false
+        this.subElements.uploadImage.classList.remove('is-loading')
+        fileInput.remove()
       })
       .catch(error => {
         console.error(error)
