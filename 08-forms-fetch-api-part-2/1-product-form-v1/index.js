@@ -75,10 +75,10 @@ export default class ProductForm {
     fileInput.type = 'file'
     fileInput.click()
 
-    fileInput.addEventListener('change', async () => {
+    fileInput.addEventListener('change', () => {
       this.subElements.uploadImage.disabled = true
       this.subElements.uploadImage.classList.add('is-loading')
-      await fetch('https://api.imgur.com/3/image', {
+      fetch('https://api.imgur.com/3/image', {
         method: "POST", 
         headers: {
           Authorization: `Client-ID ${IMGUR_CLIENT_ID}`
