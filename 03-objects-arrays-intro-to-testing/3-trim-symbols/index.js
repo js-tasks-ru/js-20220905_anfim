@@ -6,9 +6,9 @@
  */
 export function trimSymbols(string, size) {
   const strArr = string.split('')
-  let splitedArr = strArr.reduce((prev,cur,i,arr) => {
+  const splitedArr = strArr.reduce((prev,cur,i,arr) => {
     return (arr[i-1] === cur || i === 0) ? prev+cur : prev+'|'+cur;
   }, '').split('|')
-  let result = splitedArr.map(item => (item.length > size) ? item.substr(0, size) : item)
+  const result = splitedArr.map(item => (item.length > size) ? item.substr(0, size) : item)
   return result.join('')
 }

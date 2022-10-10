@@ -28,7 +28,6 @@ export default class RangePicker {
 
   initEventListeners() {
     document.addEventListener('click', this.inputHandler)
-    document.addEventListener('date-select', this.rangeSelectEvent);
   }
 
   inputHandler = event => {
@@ -109,7 +108,13 @@ export default class RangePicker {
 
       this.setStyleRange({from: this.rangeArr[0], to: this.rangeArr[1]})
       this.subElements.rangePicker.classList.remove('rangepicker_open')
-      document.dispatchEvent(new CustomEvent('date-select'));
+
+      this.element.dispatchEvent(new CustomEvent('date-select', {
+        detail: {
+          from: this.from,
+          to: this.to
+        }
+      }));
     }
     if (this.clickCount === 2) {
       this.setStyleRange({clear: true})
@@ -175,6 +180,15 @@ export default class RangePicker {
     }
   }
 
+  getWeeksName(weekDay) {
+    const dayArray = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    if (typeof weekDay === 'number') {
+      return dayArray[weekDay]
+    } else if (typeof weekDay === 'string') {
+      return dayArray.findIndex(value => value === weekDay)
+    }
+  }
+
   getMonthDays(month) {
     const obj = {}
     this.subElements.monthElems[0].dateTime
@@ -184,8 +198,16 @@ export default class RangePicker {
     return obj
   }
 
+  weeksTemplate() {
+    const weekArr = []
+    for (let i = 0; i < 7; i++) {
+      weekArr.push(this.getWeeksName(i))
+    }
+    return weekArr
+  }
+
   daysTemplate (month) {
-    let template = document.createElement('div')
+    const template = document.createElement('div')
     const monthDays = this.getMonthDays(month)
     let str = ''
 
@@ -195,9 +217,8 @@ export default class RangePicker {
     }
     template.innerHTML = str
     template.children[0].style.setProperty('--start-from', monthDays.firstDay + 1);
-    template = template.innerHTML
 
-    return template
+    return template.innerHTML
   }
 
 
@@ -243,13 +264,7 @@ export default class RangePicker {
               <time datetime="${this.monthFromName}">${this.monthFromName}</time>
             </div>
             <div class="rangepicker__day-of-week">
-              <div>Пн</div>
-              <div>Вт</div>
-              <div>Ср</div>
-              <div>Чт</div>
-              <div>Пт</div>
-              <div>Сб</div>
-              <div>Вс</div>
+              ${this.weeksTemplate().map(item => `<div>${item}</div>`).join('')}
             </div>
             <div class="rangepicker__date-grid">
             </div>
@@ -259,13 +274,7 @@ export default class RangePicker {
               <time datetime="${this.getMonthName(this.monthFrom + 1)}">${this.getMonthName(this.monthFrom + 1)}</time>
             </div>
             <div class="rangepicker__day-of-week">
-              <div>Пн</div>
-              <div>Вт</div>
-              <div>Ср</div>
-              <div>Чт</div>
-              <div>Пт</div>
-              <div>Сб</div>
-              <div>Вс</div>
+              ${this.weeksTemplate().map(item => `<div>${item}</div>`).join('')}
             </div>
             <div class="rangepicker__date-grid">
             </div>
@@ -276,10 +285,10 @@ export default class RangePicker {
     `
   }
 
-  rangeSelectEvent = event => {
-    console.log('date from: ' + this.from);
-    console.log('date to : ' + this.to);
-  }
+  // rangeSelectEvent = event => {
+  //   console.log('date from: ' + this.from);
+  //   console.log('date to : ' + this.to);
+  // }
 
   remove () {
     this.element?.remove()
@@ -289,6 +298,5 @@ export default class RangePicker {
     this.remove()
     this.element = null
     document.removeEventListener('click', this.inputHandler)
-    document.removeEventListener('date-select', this.rangeSelectEvent);
   }
 }
