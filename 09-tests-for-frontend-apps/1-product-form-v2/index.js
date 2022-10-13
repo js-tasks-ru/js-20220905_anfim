@@ -58,7 +58,9 @@ export default class ProductForm {
 
   setData() {
     const exclusions = []
-    for (const item in this.subElements) {
+    const subElementsNames = Object.keys(this.subElements)
+    
+    for (const item of subElementsNames) {
       if (this.subElements[item] === null) continue
       if (exclusions.indexOf(this.subElements[item].name) !== -1) continue
       this.subElements[item].value = this.product[item]
@@ -69,7 +71,6 @@ export default class ProductForm {
   initEventListeners() {
     this.subElements.uploadImage.addEventListener('click', this.uploadImages)
     this.subElements.form.addEventListener('submit', this.formSubmit)
-    // this.subElements.imageList.addEventListener('click', this.deleteImg)
   }
 
   uploadImages = () => {
@@ -122,10 +123,9 @@ export default class ProductForm {
   }
 
   appendNewImage (item) {
-    let template = document.createElement('div')
+    const template = document.createElement('div')
     template.innerHTML = this.imagesTemplate(item)
-    template = template.firstElementChild
-    this.subElements.imageList.firstElementChild.append(template)
+    this.subElements.imageList.firstElementChild.append(template.firstElementChild)
   }
 
   formSubmit = event => {

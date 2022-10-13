@@ -111,7 +111,7 @@ export default class ProductForm {
   }
 
   appendNewImage (item) {
-    let template = document.createElement('div')
+    const template = document.createElement('div')
     template.innerHTML = `
       <li class="products-edit__imagelist-item sortable-list__item" style="">
         <input type="hidden" name="url" value="${item.url}">
@@ -126,8 +126,7 @@ export default class ProductForm {
         </button>
       </li>
     `
-    template = template.firstElementChild
-    this.subElements.imageList.firstElementChild.append(template)
+    this.subElements.imageList.firstElementChild.append(template.firstElementChild)
   }
 
   deleteImg = event => {

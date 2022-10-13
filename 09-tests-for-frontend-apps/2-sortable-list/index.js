@@ -14,7 +14,6 @@ export default class SortableList {
     for (const item of this.items) {
       const elem = document.createElement('div')
       elem.innerHTML = item
-      // elem.classList.add('sortable-list__item')
       element.append(elem.firstElementChild)
     }
 
@@ -108,10 +107,6 @@ export default class SortableList {
     this.item.classList.remove('sortable-list__item_dragging')
     this.item.style = null
   };
-
-  getLiElments(elem) {
-    console.log(elem);
-  }
 
   remove () {
     this.element?.remove()
