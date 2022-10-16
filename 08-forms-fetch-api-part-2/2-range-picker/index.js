@@ -180,15 +180,6 @@ export default class RangePicker {
     }
   }
 
-  getWeeksName(weekDay) {
-    const dayArray = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-    if (typeof weekDay === 'number') {
-      return dayArray[weekDay]
-    } else if (typeof weekDay === 'string') {
-      return dayArray.findIndex(value => value === weekDay)
-    }
-  }
-
   getMonthDays(month) {
     const obj = {}
     this.subElements.monthElems[0].dateTime
@@ -201,7 +192,8 @@ export default class RangePicker {
   weeksTemplate() {
     const weekArr = []
     for (let i = 0; i < 7; i++) {
-      weekArr.push(this.getWeeksName(i))
+      const weekName = new Intl.DateTimeFormat('en-EN', {weekday: 'short'}).format(new Date(2022, 7, i+1))
+      weekArr.push(weekName)
     }
     return weekArr
   }
@@ -284,11 +276,6 @@ export default class RangePicker {
     </div>
     `
   }
-
-  // rangeSelectEvent = event => {
-  //   console.log('date from: ' + this.from);
-  //   console.log('date to : ' + this.to);
-  // }
 
   remove () {
     this.element?.remove()

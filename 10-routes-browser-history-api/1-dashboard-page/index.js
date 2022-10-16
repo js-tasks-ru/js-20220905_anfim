@@ -16,9 +16,9 @@ export default class Page {
     this.from = new Date()
     this.from.setMonth(this.from.getMonth() - 1);
 
-    this.BestsellersUrl = new URL(`${BACKEND_URL}api/dashboard/bestsellers`)
-    this.BestsellersUrl.searchParams.set('from', this.from.toISOString())
-    this.BestsellersUrl.searchParams.set('to', this.to.toISOString())
+    this.bestsellersUrl = new URL(`${BACKEND_URL}api/dashboard/bestsellers`)
+    this.bestsellersUrl.searchParams.set('from', this.from.toISOString())
+    this.bestsellersUrl.searchParams.set('to', this.to.toISOString())
   }
 
   
@@ -27,45 +27,40 @@ export default class Page {
     element.innerHTML = this.template;
     this.element = element.firstElementChild;
     this.subElements = this.getSubElements()
+    this.componentsObj = {}
 
+    this.initComponents()
     this.appendComponents()
     this.initEventListeners()
 
-    this.subElements.progressBar.remove()
     return this.element
   }
 
-  appendComponents() {
-    this.setRangePicker()
-    this.setColumnChart()
-    this.setSortableTable()
+  initComponents() {
+    this.initRangePicker()
+    this.initColumnChart()
+    this.initSortableTable()
   }
 
-  updateComponents() {
-    document.querySelector('main').prepend(this.subElements.progressBar)
-
-    this.subElements.customersChart.innerHTML = ''
-    this.subElements.ordersChart.innerHTML = ''
-    this.subElements.salesChart.innerHTML = ''
-    this.subElements.sortableTable.innerHTML = ''
-
-    this.setColumnChart(this.from, this.to)
-
-    this.BestsellersUrl.searchParams.set('from', this.from.toISOString())
-    this.BestsellersUrl.searchParams.set('to', this.to.toISOString())
+  async updateComponents() {
+    this.bestsellersUrl.searchParams.set('from', this.from.toISOString())
+    this.bestsellersUrl.searchParams.set('to', this.to.toISOString())
     
-    this.setSortableTable(this.BestsellersUrl.pathname + this.BestsellersUrl.search)
+    const data = await fetchJson(this.bestsellersUrl.href)
+    
+    this.componentsObj.sortableTable.addRows(data)
 
-    this.subElements.progressBar.remove()
+    this.componentsObj.ordersChart.update(this.from, this.to)
+    this.componentsObj.salesChart.update(this.from, this.to)
+    this.componentsObj.customersChart.update(this.from, this.to)
   }
 
-  setRangePicker() {
+  initRangePicker() {
     const rangePicker = new RangePicker({from: this.from, to: this.to})
-    this.subElements.rangePicker.append(rangePicker.element)
-    this.rangePickerelem = rangePicker.element
+    this.componentsObj.rangePicker = rangePicker
   }
 
-  setColumnChart(from = this.from, to = this.to) {
+  initColumnChart(from = this.from, to = this.to) {
     const ordersChart = new ColumnChart({
       url: 'api/dashboard/orders',
       label: 'orders',
@@ -92,66 +87,29 @@ export default class Page {
         to: to
       },
     })
-    this.subElements.ordersChart.append(ordersChart.element)
-    this.subElements.salesChart.append(salesChart.element)
-    this.subElements.customersChart.append(customersChart.element)
+
+    this.componentsObj.ordersChart = ordersChart
+    this.componentsObj.salesChart = salesChart
+    this.componentsObj.customersChart = customersChart
   }
 
-  setSortableTable(url = this.BestsellersUrl.pathname + this.BestsellersUrl.search) {
-    const header = [
-      {
-        id: 'images',
-        title: 'Image',
-        sortable: false,
-        template: (data = []) => {
-          return `
-            <div class="sortable-table__cell">
-              <img class="sortable-table-image" alt="Image" src="${data[0]?.url}">
-            </div>
-          `;
-        }
-      },
-      {
-        id: 'title',
-        title: 'Name',
-        sortable: true,
-        sortType: 'string'
-      },
-      {
-        id: 'quantity',
-        title: 'Quantity',
-        sortable: true,
-        sortType: 'number'
-      },
-      {
-        id: 'price',
-        title: 'Price',
-        sortable: true,
-        sortType: 'number'
-      },
-      {
-        id: 'status',
-        title: 'Status',
-        sortable: true,
-        sortType: 'number',
-        template: data => {
-          return `<div class="sortable-table__cell">
-            ${data > 0 ? 'Active' : 'Inactive'}
-          </div>`;
-        }
-      },
-    ];
-  
+  initSortableTable(url = this.bestsellersUrl.href) {
     const sortableTable = new SortableTable(header, {
       url: url,
       isSortLocally: true,
     });
 
-    this.subElements.sortableTable.append(sortableTable.element)
+    this.componentsObj.sortableTable = sortableTable
+  }
+
+  appendComponents() {
+    Object.keys(this.componentsObj).forEach(componentName => {
+      this.subElements[componentName].append(this.componentsObj[componentName].element)
+    })
   }
 
   initEventListeners() {
-    document.addEventListener('date-select', this.dateSelectEvent)
+    this.componentsObj.rangePicker.element.addEventListener('date-select', this.dateSelectEvent)
   }
 
   dateSelectEvent = event => {
@@ -161,18 +119,13 @@ export default class Page {
   }
 
   getSubElements() {
-    const subElements = {}
+    const subElements = this.element.querySelectorAll('[data-element]')
 
-    subElements.progressBar = document.querySelector('.progress-bar')
-    
-    subElements.rangePicker = this.element.querySelector('[data-element="rangePicker"]')
-    subElements.ordersChart = this.element.querySelector('[data-element="ordersChart"]')
-    subElements.salesChart = this.element.querySelector('[data-element="salesChart"]')
-    subElements.customersChart = this.element.querySelector('[data-element="customersChart"]')
-    subElements.sortableTable = this.element.querySelector('[data-element="sortableTable"]')
+    return [...subElements].reduce((accum, element) => {
+      accum[element.dataset.element] = element
 
-    // console.log(subElements)
-    return subElements
+      return accum
+    }, {})
   }
 
   get template() {
@@ -199,6 +152,7 @@ export default class Page {
 
   destroy() {
     this.remove();
+    Object.keys(this.componentsObj).forEach(componentName => this.componentsObj[componentName].destroy())
     document.removeEventListener('date-select', this.dateSelectEvent)
   }
 }
